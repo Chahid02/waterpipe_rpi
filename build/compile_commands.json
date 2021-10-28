@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/pi/Desktop/waterpipe/build",
-  "command": "/bin/gcc-8   -g   -o CMakeFiles/waterpipe.dir/waterpipe.c.o   -c /home/pi/Desktop/waterpipe/waterpipe.c",
-  "file": "/home/pi/Desktop/waterpipe/waterpipe.c"
-}
-]

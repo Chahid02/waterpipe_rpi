@@ -1,3 +1,0 @@
-/home/pi/Desktop/waterpipe/CMakeFiles/rebuild_cache.dir
-/home/pi/Desktop/waterpipe/CMakeFiles/waterpipe.dir
-/home/pi/Desktop/waterpipe/CMakeFiles/edit_cache.dir
