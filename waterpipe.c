@@ -284,6 +284,7 @@ void sig_handler(int32_t sigNr)
     
     else
     {
+        
         __NOP();
     }
     alarm(2);
