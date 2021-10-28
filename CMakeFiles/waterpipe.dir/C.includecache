@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/Desktop/waterpipe/waterpipe.c
+wiringPi.h
+-
+softPwm.h
+-
+stdio.h
+-
+inttypes.h
+-
+math.h
+-
+
