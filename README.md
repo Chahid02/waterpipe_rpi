@@ -1,8 +1,6 @@
-# waterpipe_rpi
 # Waterpipe Project
 
- This project is a Raspberry Pi waterpipe control system prototype.
-
+This project is a Raspberry Pi waterpipe control system prototype.
 ___
 # Terminal
 ___
