@@ -6,4 +6,5 @@ add_executable( waterpipe
                 waterpipe.c)
 
 target_link_libraries(  waterpipe
-                        wiringPi)
+                        wiringPi
+                        bluetooth)
