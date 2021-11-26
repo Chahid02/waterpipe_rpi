@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include <sys/socket.h>
@@ -65,6 +66,16 @@ int socketPi;
 int status;
 int bytesRead;
 char data[1024] = {0};
+
+float temperature, pressure, humidity, waterLevel, waterTemperature;
+char *endTermimn = "ÿ";
+
+
+
+
+
+
+
 int main(void)
 {
 
@@ -92,11 +103,14 @@ int main(void)
     }
     else
     {
+    /* 
         bytesRead = read(socketPi, data, sizeof(data));
         if (bytesRead > 0)
         {
             debugVal("%s\n", data);
-        }
+            memset(data, 0, sizeof(data));
+        } 
+    */
     }
 
     debugTerm();
@@ -160,17 +174,29 @@ int main(void)
     debugMsg("====================  OPERATION MODE STARTED  ======================== \r\n");
     //delay(5000);
 
+
+    debugMsg("====================  INIT SIGNAL HANDLER STARTED  =================== \r\n");
     signal(SIGALRM, sig_handler);
     signal(SIGINT, sig_handler);
+    //signal(SIGVTALRM, sig_handler);
     alarm(1);
+  
+
+
 
     runMotA = 1;
     memset(data, 0, sizeof(data));
+
+    timer_Us(100000);
+
+
     while (1)
     {
         //pwmWrite(PWM_PIN0, dutyCycle);/*!< Needs to be in the while loop */
         MOTOR_A_ON(pwmDC);
         //MOTOR_B_ON(511);
+
+
     }
     return 0;
 }
@@ -293,31 +319,56 @@ void debugTerm(void)
     debugMsg("======================================================================\r\n\n");
 }
 
+
+
+
+
+
+
 void sig_handler(int32_t sigNr)
 {
+
+    
     if (sigNr == SIGALRM)
     { //signal handler for SIGALRM
 
-        bytesRead = read(socketPi, data, sizeof(data));
-        if (bytesRead < 0)
+
+      /*   
+      bytesRead = read(socketPi, data, sizeof(data));
+        if (bytesRead >= 51)
         {
             debugVal("%s\r\n", data);
-            memset(data, 0, sizeof(data));
+            debugVal("Bytes recieved:%d",bytesRead);
+            filterChar(data, "TE:","ÿ");
+            filterChar(data, "PR:","ÿ");
+            filterChar(data, "HM:","ÿ");
+            filterChar(data, "TW:","ÿ");
+            filterChar(data, "WL:","ÿ");
+            memset(data, 0, sizeof(data));       
         }
-        else
+        else if (bytesRead <= 10)
         {
-            debugMsg("[X] No Bluetooth Data received !!! [X]\r\n");
-        }
+            bytesRead = read(socketPi, data, sizeof(data));
+            debugVal("%s\r\n", data);
+            debugVal("Error:Bytes recieved:%d",bytesRead); 
+            memset(data, 0, sizeof(data)); 
+        } */
+
+
+        
+
+        memset(data, 0, sizeof(data));
+  
 
         //printf("2 Seconds Signal-IRQ\r\n");
         if (pwmDC < 1)
         {
             pwmDC += 0.1;
-            //printf("[X] POWER %f [X]\r\n",pwmDC);
+            debugVal("[X] POWER %f [X]\r\n",pwmDC);
         }
         else if (pwmDC = 1.0f)
         {
-            //printf("[X] FULL POWER [X]\r\n");
+            debugMsg("[X] FULL POWER [X]\r\n");
         }
 
         else
@@ -327,14 +378,103 @@ void sig_handler(int32_t sigNr)
         }
         alarm(1);
     }
+    else
+    {
+        __NOP();
+    }
+    
 
     if (sigNr == SIGINT)
     { // signal handler for SIGINT
-        printf("\n[X] Exit Programm [X]\n");
+        debugMsg("\n[X] Exit Programm [X]\n");
         runMotA = 0;
         digitalWrite(L293D_EN1, LOW);
         exit(0);
     }
-    memset(data, 0, sizeof(data));
+    else
+    {
+        __NOP();
+    }
+    
     clrscr();
+}
+
+void timer_Us(int64_t uSeconds)
+{
+    struct sigaction sa;
+    struct itimerval timer;
+
+    memset(&sa, 0, sizeof (sa));
+    sigemptyset(&sa.sa_mask);
+    sa.sa_handler = &timer_handler;
+    sigaction(SIGVTALRM, &sa, NULL);
+
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = uSeconds;
+
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = uSeconds;
+
+    setitimer(ITIMER_VIRTUAL, &timer, NULL);
+}
+
+void timer_handler (int32_t sigNr)
+{
+
+    bytesRead = read(socketPi, data, sizeof(data));
+
+        debugVal("%s\r\n", data);
+        debugVal("Bytes recieved:%d",bytesRead);
+        if (bytesRead != -1)
+        { 
+            filterChar(data, "A:","ÿ");
+            filterChar(data, "B:","ÿ");
+            filterChar(data, "C:","ÿ");
+            filterChar(data, "D:","ÿ");
+            filterChar(data, "E:","ÿ"); 
+            memset(data, 0, sizeof(data));   
+        }
+    
+    
+
+  }
+
+
+
+float filterChar(char *string, char *searchString, char *term)
+{
+	int len;
+	char buff[strlen(searchString)];
+	char *ret = strstr(string, searchString);
+
+	if (ret != 0)
+	{
+		for (int i = 0; i < strlen(searchString); ++i)
+		{
+			buff[i] = ret[i];
+		}
+	}
+
+	if (strcmp(buff, searchString) == 0 && ret != 0)
+	{
+
+		len = strcspn(ret, term);
+		char buff[len];
+
+		for (int i = 0; i < len; ++i)
+		{
+			buff[i] = ret[i + strlen(searchString)];
+		}
+
+		buff[len - strlen(searchString)] ='\0'/*"ÿ"*/;
+		debug2Val("\r\n %s%s [X] \r\n",searchString,buff);
+		return strtod(buff,NULL); /*!< strtod gives better control of undefined range */
+	}
+	else
+	{
+		debugMsg("=============================\r\n");
+		debugVal("%s not found\r\n",searchString);
+		debugMsg("=============================\r\n");
+		return -200;
+	}
 }

@@ -55,8 +55,8 @@ void debugTerm(void);
 void MOTOR_A_ON(float_t pwmDC);
 void MOTOR_B_ON(int dutyCycle);
 void sig_handler(int32_t signum);
-
-
-
+void timer_Us(int64_t uSeconds);
+void timer_handler (int32_t sigNr);
+float filterChar(char *string, char *searchString, char *term);
 
 #endif
