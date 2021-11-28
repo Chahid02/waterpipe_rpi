@@ -82,7 +82,8 @@ int main(void)
 {
 
     struct sockaddr_rc raspPicoServer = {0};
-    const char *raspPico = "98:D3:71:FD:F4:3A";
+    //const char *raspPico = "98:D3:71:FD:F4:3A";
+    const char *raspPico = "00:20:08:00:1F:2A";
 
     raspPicoServer.rc_family = AF_BLUETOOTH;
     raspPicoServer.rc_channel = (uint8_t)1;
@@ -183,7 +184,7 @@ int main(void)
     runMotA = 1;
     memset(data, 0, sizeof(data));
 
-    timer_Us(500000);
+    timer_Us(100000);
 
 
     while (1)
