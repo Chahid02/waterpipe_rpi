@@ -62,6 +62,8 @@ uint8_t swTimerFact = 10;
 uint8_t swPwmPeriod = 5; /*!< in ms */
 uint8_t runMotA = 0;
 
+uint16_t recMsg=0;
+uint usTim=1;
 int socketPi;
 int status;
 int bytesRead;
@@ -103,14 +105,8 @@ int main(void)
     }
     else
     {
-    /* 
-        bytesRead = read(socketPi, data, sizeof(data));
-        if (bytesRead > 0)
-        {
-            debugVal("%s\n", data);
-            memset(data, 0, sizeof(data));
-        } 
-    */
+        __NOP();
+    
     }
 
     debugTerm();
@@ -187,11 +183,21 @@ int main(void)
     runMotA = 1;
     memset(data, 0, sizeof(data));
 
-    timer_Us(100000);
+    timer_Us(500000);
 
 
     while (1)
     {
+
+
+        if( usTim )
+        {
+    
+        }
+
+
+
+
         //pwmWrite(PWM_PIN0, dutyCycle);/*!< Needs to be in the while loop */
         MOTOR_A_ON(pwmDC);
         //MOTOR_B_ON(511);
@@ -333,42 +339,31 @@ void sig_handler(int32_t sigNr)
     { //signal handler for SIGALRM
 
 
-      /*   
-      bytesRead = read(socketPi, data, sizeof(data));
-        if (bytesRead >= 51)
+         
+      /*  bytesRead = read(socketPi, data, sizeof(data));
+        if (bytesRead > 0)
         {
-            debugVal("%s\r\n", data);
+            //debugVal("%s\r\n", data);
             debugVal("Bytes recieved:%d",bytesRead);
-            filterChar(data, "TE:","ÿ");
-            filterChar(data, "PR:","ÿ");
-            filterChar(data, "HM:","ÿ");
-            filterChar(data, "TW:","ÿ");
-            filterChar(data, "WL:","ÿ");
-            memset(data, 0, sizeof(data));       
-        }
-        else if (bytesRead <= 10)
-        {
-            bytesRead = read(socketPi, data, sizeof(data));
-            debugVal("%s\r\n", data);
-            debugVal("Error:Bytes recieved:%d",bytesRead); 
-            memset(data, 0, sizeof(data)); 
-        } */
+                filterChar(data, "A:","ÿ");
+                filterChar(data, "B:","ÿ");
+                filterChar(data, "C:","ÿ");
+                filterChar(data, "D:","ÿ");
+                filterChar(data, "E:","ÿ");  
+                memset(data, 0, sizeof(data)); 
+        }  */
 
 
-        
-
-        memset(data, 0, sizeof(data));
-  
 
         //printf("2 Seconds Signal-IRQ\r\n");
         if (pwmDC < 1)
         {
             pwmDC += 0.1;
-            debugVal("[X] POWER %f [X]\r\n",pwmDC);
+           // debugVal("[X] POWER %f [X]\r\n",pwmDC);
         }
         else if (pwmDC = 1.0f)
         {
-            debugMsg("[X] FULL POWER [X]\r\n");
+           // debugMsg("[X] FULL POWER [X]\r\n");
         }
 
         else
@@ -396,7 +391,7 @@ void sig_handler(int32_t sigNr)
         __NOP();
     }
     
-    clrscr();
+    //clrscr();
 }
 
 void timer_Us(int64_t uSeconds)
@@ -421,23 +416,22 @@ void timer_Us(int64_t uSeconds)
 void timer_handler (int32_t sigNr)
 {
 
-    bytesRead = read(socketPi, data, sizeof(data));
+    usTim = !usTim;
+  bytesRead = read(socketPi, data, sizeof(data));
+        if (bytesRead > 0)
+        {
+            //debugVal("%s\r\n", data);
+                filterChar(data, "A:","ÿ");
+                filterChar(data, "B:","ÿ");
+                filterChar(data, "C:","ÿ");
+                filterChar(data, "D:","ÿ");
+                filterChar(data, "E:","ÿ");  
+                memset(data, 0, sizeof(data));
+                clrscr();
+        }  
+   
 
-        debugVal("%s\r\n", data);
-        debugVal("Bytes recieved:%d",bytesRead);
-        if (bytesRead != -1)
-        { 
-            filterChar(data, "A:","ÿ");
-            filterChar(data, "B:","ÿ");
-            filterChar(data, "C:","ÿ");
-            filterChar(data, "D:","ÿ");
-            filterChar(data, "E:","ÿ"); 
-            memset(data, 0, sizeof(data));   
-        }
-    
-    
-
-  }
+}
 
 
 
@@ -472,9 +466,9 @@ float filterChar(char *string, char *searchString, char *term)
 	}
 	else
 	{
-		debugMsg("=============================\r\n");
+		/* debugMsg("=============================\r\n");
 		debugVal("%s not found\r\n",searchString);
-		debugMsg("=============================\r\n");
+		debugMsg("=============================\r\n"); */
 		return -200;
 	}
 }
