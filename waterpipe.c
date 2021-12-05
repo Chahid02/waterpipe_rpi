@@ -396,12 +396,13 @@ void timer_handler(int32_t sigNr)
     bytesRead = read(socketPi, data, sizeof(data));
     if (bytesRead > 0)
     {
+        debugMsg("======================== BLUETOOTH TERMINAL===========================\r\n");
         //debugVal("%s\r\n", data);
-        filterChar(data, "A:", "ÿ","[X] BME TEMP:");
-        filterChar(data, "B:", "ÿ","[X] BME PRESS:");
-        filterChar(data, "C:", "ÿ","[X] BME HUM:");
-        filterChar(data, "D:", "ÿ","[X] DS18B20 TEMP:");
-        filterChar(data, "E:", "ÿ","[X] WATERLEVEL");
+        filterChar(data, "A:", "ÿ","[X] BME TEMP: ");
+        filterChar(data, "B:", "ÿ","[X] BME PRESS: ");
+        filterChar(data, "C:", "ÿ","[X] BME HUM: ");
+        filterChar(data, "D:", "ÿ","[X] DS18B20 TEMP: ");
+        filterChar(data, "E:", "ÿ","[X] WATERLEVEL: ");
         memset(data, 0, sizeof(data));
         clrscr();
     }
