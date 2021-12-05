@@ -175,7 +175,7 @@ int main(void)
     runMotA = 1;
     memset(data, 0, sizeof(data));
 
-    timer_Us(100000);
+    timer_Us(1000);
 
     while (1)
     {
@@ -353,7 +353,6 @@ void sig_handler(int32_t sigNr)
 
     if (sigNr == SIGINT)
     { // signal handler for SIGINT
-        debugMsg("\n[X] Exit Programm [X]\n");
         runMotA = 0;
         runMotB = 0;
         digitalWrite(L293D_EN1, LOW);
@@ -396,22 +395,22 @@ void timer_handler(int32_t sigNr)
     bytesRead = read(socketPi, data, sizeof(data));
     if (bytesRead > 0)
     {
-        debugMsg("======================== BLUETOOTH TERMINAL===========================\r\n");
         //debugVal("%s\r\n", data);
-        filterChar(data, "A:", "ÿ","[X] BME TEMP: ");
-        filterChar(data, "B:", "ÿ","[X] BME PRESS: ");
-        filterChar(data, "C:", "ÿ","[X] BME HUM: ");
-        filterChar(data, "D:", "ÿ","[X] DS18B20 TEMP: ");
-        filterChar(data, "E:", "ÿ","[X] WATERLEVEL: ");
+        filterChar(data, "A:", "ÿ","[X] BME TEMP: ","°C");
+        filterChar(data, "B:", "ÿ","[X] BME PRESS: ","hPa");
+        filterChar(data, "C:", "ÿ","[X] BME HUM: ","%");
+        filterChar(data, "D:", "ÿ","[X] DS18B20 TEMP: ","°C");
+        filterChar(data, "E:", "ÿ","[X] WATERLEVEL: ","cm");
         memset(data, 0, sizeof(data));
         clrscr();
     }
 }
 
-float filterChar(char *string, char *searchString, char *term, char *output)
+float filterChar(char *string, char *searchString, char *term, char *output,char *unit)
 {
     int len;
     char buff[strlen(searchString)];
+    char data[strlen(searchString)];
     char *ret = strstr(string, searchString);
 
     if (ret != 0)
@@ -431,11 +430,14 @@ float filterChar(char *string, char *searchString, char *term, char *output)
         for (int i = 0; i < len; ++i)
         {
             buff[i] = ret[i + strlen(searchString)];
+            data[i] = ret[i + strlen(searchString)];
         }
 
         buff[len - strlen(searchString)] = '\0' /*"ÿ"*/;
+        data[len - strlen(searchString)] = '\0' /*"ÿ"*/;
         //debug2Val("\r\n %s%s [X] \r\n", searchString, buff);
-        debug2Val("\r\n %s%s [X] \r\n", output, buff);
+        debug2Val("\r\n %s%s [X] \r\n", output, strncat(data,unit,sizeof(unit)));
+
         return strtod(buff, NULL); /*!< strtod gives better control of undefined range */
     }
     else
