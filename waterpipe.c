@@ -397,17 +397,17 @@ void timer_handler(int32_t sigNr)
     if (bytesRead > 0)
     {
         //debugVal("%s\r\n", data);
-        filterChar(data, "A:", "ÿ");
-        filterChar(data, "B:", "ÿ");
-        filterChar(data, "C:", "ÿ");
-        filterChar(data, "D:", "ÿ");
-        filterChar(data, "E:", "ÿ");
+        filterChar(data, "A:", "ÿ","[X] BME TEMP:");
+        filterChar(data, "B:", "ÿ","[X] BME PRESS:");
+        filterChar(data, "C:", "ÿ","[X] BME HUM:");
+        filterChar(data, "D:", "ÿ","[X] DS18B20 TEMP:");
+        filterChar(data, "E:", "ÿ","[X] WATERLEVEL");
         memset(data, 0, sizeof(data));
         clrscr();
     }
 }
 
-float filterChar(char *string, char *searchString, char *term)
+float filterChar(char *string, char *searchString, char *term, char *output)
 {
     int len;
     char buff[strlen(searchString)];
@@ -433,7 +433,8 @@ float filterChar(char *string, char *searchString, char *term)
         }
 
         buff[len - strlen(searchString)] = '\0' /*"ÿ"*/;
-        debug2Val("\r\n %s%s [X] \r\n", searchString, buff);
+        //debug2Val("\r\n %s%s [X] \r\n", searchString, buff);
+        debug2Val("\r\n %s%s [X] \r\n", output, buff);
         return strtod(buff, NULL); /*!< strtod gives better control of undefined range */
     }
     else
