@@ -57,7 +57,7 @@
 /*=========================================================*/
 uint16_t pwmRange = 1000;
 int32_t pwmClockDefault = 54e6;
-float_t pwmDC = 0;
+float_t pwmDC = 0.1;
 int dutyCycle = 1000;
 uint8_t swTimerFact = 10;
 uint8_t swPwmPeriod = 5; /*!< in ms */
@@ -123,7 +123,7 @@ int main(void)
     delay(1000);
     debugMsg("====================  HW PWM INIT STARTED  =========================== \r\n");
     delay(1000);
-    uint16_t freqHz = 8000;
+    uint32_t freqHz = 9000;
     float_t pwmClock = pwmClockDefault / freqHz / pwmRange;
     float_t pwmFreq = pwmClockDefault / pwmClock / pwmRange;
     dutyCycle = 1023 * pwmDC;
@@ -320,12 +320,12 @@ void sig_handler(int32_t sigNr)
         //printf("2 Seconds Signal-IRQ\r\n");
         if (dutyCycle <= 1000)
         {
-            dutyCycle += 1;
+            dutyCycle += 100;
             pwmWrite(PWM_PIN1, dutyCycle);
 
-            //debugVal("[X] Dutycycle %d [X]\r\n",dutyCycle);
+            debugVal("[X] Dutycycle %d [X]\r\n",dutyCycle);
         }
-        else if (dutyCycle = 1023)
+        else if (dutyCycle >= 1023)
         {
             dutyCycle=0;
            // debugVal("[X] Duty-Cycle %d [X]\r\n",dutyCycle);
