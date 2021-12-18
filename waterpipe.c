@@ -123,7 +123,7 @@ int main(void)
     delay(1000);
     debugMsg("====================  HW PWM INIT STARTED  =========================== \r\n");
     delay(1000);
-    uint32_t freqHz = 9000;
+    uint32_t freqHz = 10000;
     float_t pwmClock = pwmClockDefault / freqHz / pwmRange;
     float_t pwmFreq = pwmClockDefault / pwmClock / pwmRange;
     dutyCycle = 1023 * pwmDC;
@@ -318,6 +318,7 @@ void sig_handler(int32_t sigNr)
     if (sigNr == SIGALRM)
     { //signal handler for SIGALRM
         //printf("2 Seconds Signal-IRQ\r\n");
+
         if (dutyCycle <= 1000)
         {
             dutyCycle += 100;
@@ -334,6 +335,7 @@ void sig_handler(int32_t sigNr)
         {
             __NOP();
         }
+
         alarm(1);
     }
     else
@@ -388,7 +390,15 @@ void timer_handler(int32_t sigNr)
         filterChar(data, "B:", "ÿ","[X] BME PRESS: ","hPa");
         filterChar(data, "C:", "ÿ","[X] BME HUM: ","%");
         filterChar(data, "D:", "ÿ","[X] DS18B20 TEMP: ","°C");
-        filterChar(data, "E:", "ÿ","[X] WATERLEVEL: ","cm");
+        if(filterChar(data, "E:", "ÿ","[X] WATERLEVEL: ","cm") >= 4.0f)
+        {
+            pwmWrite(PWM_PIN1, 0);
+        }
+        else
+        {
+            pwmWrite(PWM_PIN1, 1023);
+        }
+        
         memset(data, 0, sizeof(data));
         clrscr();
     }
