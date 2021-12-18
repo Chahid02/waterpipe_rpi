@@ -57,7 +57,8 @@
 /*=========================================================*/
 uint16_t pwmRange = 1000;
 int32_t pwmClockDefault = 54e6;
-float_t pwmDC = 0.1;
+float_t pwmDC = 0;
+int dutyCycle = 1000;
 uint8_t swTimerFact = 10;
 uint8_t swPwmPeriod = 5; /*!< in ms */
 uint8_t runMotA = 0;
@@ -69,6 +70,7 @@ int socketPi;
 int status;
 int bytesRead;
 char data[1024] = {0};
+
 
 float temperature, pressure, humidity, waterLevel, waterTemperature;
 char *endTermimn = "ÿ";
@@ -121,10 +123,10 @@ int main(void)
     delay(1000);
     debugMsg("====================  HW PWM INIT STARTED  =========================== \r\n");
     delay(1000);
-    uint8_t freqHz = 50;
+    uint16_t freqHz = 8000;
     float_t pwmClock = pwmClockDefault / freqHz / pwmRange;
     float_t pwmFreq = pwmClockDefault / pwmClock / pwmRange;
-    int dutyCycle = 1023 * pwmDC;
+    dutyCycle = 1023 * pwmDC;
 
     debugVal("[X] HW PWM CLOCK : %d [X]\r\n", (int32_t)pwmClock);
     debugVal("[X] HW PWM FREQ : %f [X]\r\n", pwmFreq);
@@ -136,12 +138,12 @@ int main(void)
     debugVal("[X] HW PWM_PIN1 on : GPIO %d in OUTPUT MODE [X]\r\n", PWM_PIN1);
     delay(1000);
 
-    debugMsg("====================  SW PWM INIT STARTED  =========================== \r\n");
-    pinMode(SWPWM_PIN28, OUTPUT);
-    pinMode(SWPWM_PIN29, OUTPUT);
-    debugVal("[X] SW PWM_PIN28 on : GPIO %d in OUTPUT MODE [X]\r\n", SWPWM_PIN28);
-    debugVal("[X] SW PWM_PIN29 on : GPIO %d in OUTPUT MODE [X]\r\n", SWPWM_PIN29);
-    delay(1000);
+ //   debugMsg("====================  SW PWM INIT STARTED  =========================== \r\n");
+ //  pinMode(SWPWM_PIN28, OUTPUT);
+ //  pinMode(SWPWM_PIN29, OUTPUT);
+ //   debugVal("[X] SW PWM_PIN28 on : GPIO %d in OUTPUT MODE [X]\r\n", SWPWM_PIN28);
+ //   debugVal("[X] SW PWM_PIN29 on : GPIO %d in OUTPUT MODE [X]\r\n", SWPWM_PIN29);
+ //   delay(1000);
 
     debugMsg("====================  HW PWM SETUP STARTED  ========================== \r\n");
     pwmSetMode(PWM_MODE_MS);
@@ -155,13 +157,12 @@ int main(void)
 
     delay(1000);
 
-    debugMsg("====================  SWW PWM SETUP STARTED  ========================== \r\n");
-    softPwmCreate(SWPWM_PIN28, 0, swPwmPeriod * swTimerFact); /*!< range = value(ms)*10 ! Measured with osci !  */
-    //softPwmWrite(SWPWM_PIN28,swPwmPeriod * swTimerFact * pwmDC);/*!< DC in percent */
-    debugVal("[X] SW PWM PERIOD SETS TO %d ms [X]\r\n", swPwmPeriod);
-    debugVal("[X] SW PWM T_ON SETS TO %f ms [X]\r\n", pwmDC * swPwmPeriod);
-    debugVal("[X] SW PWM T_OFF SETS TO %f ms [X]\r\n", swPwmPeriod - (pwmDC * swPwmPeriod));
-
+ //   debugMsg("====================  SWW PWM SETUP STARTED  ========================== \r\n");
+ //   softPwmCreate(SWPWM_PIN28, 0, swPwmPeriod * swTimerFact); /* range = value(ms)*10 ! Measured with osci !  */
+ //   debugVal("[X] SW PWM PERIOD SETS TO %d ms [X]\r\n", swPwmPeriod);
+ //   debugVal("[X] SW PWM T_ON SETS TO %f ms [X]\r\n", pwmDC * swPwmPeriod);
+ //   debugVal("[X] SW PWM T_OFF SETS TO %f ms [X]\r\n", swPwmPeriod - (pwmDC * swPwmPeriod));
+ 
     MOTOR_PINS();
     debugMsg("====================  OPERATION MODE STARTED  ======================== \r\n");
     //delay(5000);
@@ -185,8 +186,8 @@ int main(void)
         }
 
         //pwmWrite(PWM_PIN0, dutyCycle);/*!< Needs to be in the while loop */
-        MOTOR_A_ON(pwmDC);
-        //MOTOR_B_ON(511);
+
+
     }
     return 0;
 }
@@ -244,7 +245,9 @@ void MOTOR_PINS(void)
 void MOTOR_A_ON(float_t pwmDC)
 {
     //debugMsg("====================  L293D MOTOR-A ROTATING  ======================== \r\n");;
-    softPwmWrite(SWPWM_PIN28, swPwmPeriod * swTimerFact * pwmDC); /*!< DC in percent */
+    //softPwmWrite(SWPWM_PIN28, swPwmPeriod * swTimerFact * pwmDC); /*!< DC in percent */
+    //softPwmWrite(SWPWM_PIN29, swPwmPeriod * swTimerFact * pwmDC); /*!< DC in percent */
+
     if (runMotA == 1)
     {
         digitalWrite(L293D_EN1, HIGH);
@@ -281,9 +284,9 @@ void MOTOR_A_ON(float_t pwmDC)
 void MOTOR_B_ON(int dutyCycle)
 {
     debugMsg("====================  L293D MOTOR-B ROTATING  ======================== \r\n");
-    digitalWrite(L293D_EN2, HIGH);
-    pwmWrite(PWM_PIN1, dutyCycle);
-    digitalWrite(L293D_IN4, LOW);
+    //digitalWrite(L293D_EN2, HIGH);
+    //pwmWrite(PWM_PIN1, dutyCycle);
+    //digitalWrite(L293D_IN4, LOW);
     debugVal("[X] Motor B Freq with DC: %d\r\n", dutyCycle);
 }
 
@@ -314,34 +317,21 @@ void sig_handler(int32_t sigNr)
 
     if (sigNr == SIGALRM)
     { //signal handler for SIGALRM
-
-        /*  bytesRead = read(socketPi, data, sizeof(data));
-        if (bytesRead > 0)
-        {
-            //debugVal("%s\r\n", data);
-            debugVal("Bytes recieved:%d",bytesRead);
-                filterChar(data, "A:","ÿ");
-                filterChar(data, "B:","ÿ");
-                filterChar(data, "C:","ÿ");
-                filterChar(data, "D:","ÿ");
-                filterChar(data, "E:","ÿ");  
-                memset(data, 0, sizeof(data)); 
-        }  */
-
         //printf("2 Seconds Signal-IRQ\r\n");
-        if (pwmDC < 1)
+        if (dutyCycle <= 1000)
         {
-            pwmDC += 0.1;
-            // debugVal("[X] POWER %f [X]\r\n",pwmDC);
-        }
-        else if (pwmDC = 1.0f)
-        {
-            // debugMsg("[X] FULL POWER [X]\r\n");
-        }
+            dutyCycle += 1;
+            pwmWrite(PWM_PIN1, dutyCycle);
 
+            //debugVal("[X] Dutycycle %d [X]\r\n",dutyCycle);
+        }
+        else if (dutyCycle = 1023)
+        {
+            dutyCycle=0;
+           // debugVal("[X] Duty-Cycle %d [X]\r\n",dutyCycle);
+        }
         else
         {
-
             __NOP();
         }
         alarm(1);
@@ -353,9 +343,7 @@ void sig_handler(int32_t sigNr)
 
     if (sigNr == SIGINT)
     { // signal handler for SIGINT
-        runMotA = 0;
-        runMotB = 0;
-        digitalWrite(L293D_EN1, LOW);
+        pwmWrite(PWM_PIN1, 0);
         debugMsg("\n[X] Close Bluetooth Socket [X]\n");
         close(socketPi);
         debugMsg("\n[X] Exit Programm [X]\n");
