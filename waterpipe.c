@@ -42,13 +42,17 @@
 #define SWPWM_PIN29 29
 #define SWPWM_PIN28 28
 
-#define PWM_PIN0 26
+#define PWM_PIN0 24
 #define PWM_PIN1 23
+#define PWM_PIN2 26
+#define PWM_PIN3 1
+
+
 #define L293D_IN1 0
-#define L293D_IN2 2
+#define L293D_IN3 2
 #define L293D_EN1 3
 
-#define L293D_IN3 1
+//#define L293D_IN3 1
 #define L293D_IN4 4
 #define L293D_EN2 5
 
@@ -57,7 +61,7 @@
 /*=========================================================*/
 uint16_t pwmRange = 1000;
 int32_t pwmClockDefault = 54e6;
-float_t pwmDC = 0.1;
+float_t pwmDC = 0;
 int dutyCycle = 1000;
 uint8_t swTimerFact = 10;
 uint8_t swPwmPeriod = 5; /*!< in ms */
@@ -134,6 +138,9 @@ int main(void)
 
     pinMode(PWM_PIN0, PWM_OUTPUT); //pwm output mode
     pinMode(PWM_PIN1, PWM_OUTPUT); //pwm output mode
+    pinMode(PWM_PIN2, PWM_OUTPUT); //pwm output mode
+    pinMode(PWM_PIN3, PWM_OUTPUT); //pwm output mode
+
     debugVal("[X] HW PWM_PIN0 on : GPIO %d in OUTPUT MODE [X]\r\n", PWM_PIN0);
     debugVal("[X] HW PWM_PIN1 on : GPIO %d in OUTPUT MODE [X]\r\n", PWM_PIN1);
     delay(1000);
@@ -219,8 +226,8 @@ void MOTOR_PINS(void)
     pinMode(2, OUTPUT);
     pinMode(3, OUTPUT);
     pinMode(4, OUTPUT);
-    digitalWrite(L293D_EN2, LOW);
-    digitalWrite(L293D_IN4, LOW);
+    digitalWrite(L293D_IN1, LOW);
+    digitalWrite(L293D_IN3, LOW);
 }
 /*!
 **************************************************************
@@ -244,10 +251,11 @@ void MOTOR_PINS(void)
  */
 void MOTOR_A_ON(float_t pwmDC)
 {
+    
     //debugMsg("====================  L293D MOTOR-A ROTATING  ======================== \r\n");;
     //softPwmWrite(SWPWM_PIN28, swPwmPeriod * swTimerFact * pwmDC); /*!< DC in percent */
     //softPwmWrite(SWPWM_PIN29, swPwmPeriod * swTimerFact * pwmDC); /*!< DC in percent */
-
+/*
     if (runMotA == 1)
     {
         digitalWrite(L293D_EN1, HIGH);
@@ -258,7 +266,7 @@ void MOTOR_A_ON(float_t pwmDC)
         digitalWrite(L293D_EN1, LOW);
         digitalWrite(L293D_IN2, LOW);
     }
-
+*/
     //debugVal("[X] Motor A Freq with DC: %d\r\n", pwmDC*100);
 }
 /*!
@@ -283,11 +291,13 @@ void MOTOR_A_ON(float_t pwmDC)
  */
 void MOTOR_B_ON(int dutyCycle)
 {
+    /*
     debugMsg("====================  L293D MOTOR-B ROTATING  ======================== \r\n");
     //digitalWrite(L293D_EN2, HIGH);
     //pwmWrite(PWM_PIN1, dutyCycle);
     //digitalWrite(L293D_IN4, LOW);
     debugVal("[X] Motor B Freq with DC: %d\r\n", dutyCycle);
+    */
 }
 
 /*!
@@ -318,7 +328,7 @@ void sig_handler(int32_t sigNr)
     if (sigNr == SIGALRM)
     { //signal handler for SIGALRM
         //printf("2 Seconds Signal-IRQ\r\n");
-
+/*
         if (dutyCycle <= 1000)
         {
             dutyCycle += 100;
@@ -335,7 +345,7 @@ void sig_handler(int32_t sigNr)
         {
             __NOP();
         }
-
+*/
         alarm(1);
     }
     else
@@ -345,7 +355,11 @@ void sig_handler(int32_t sigNr)
 
     if (sigNr == SIGINT)
     { // signal handler for SIGINT
+        pwmWrite(PWM_PIN0, 0);
         pwmWrite(PWM_PIN1, 0);
+        //pwmWrite(PWM_PIN2, 0);
+        digitalWrite(L293D_IN1, LOW);
+        digitalWrite(L293D_IN3, LOW);
         debugMsg("\n[X] Close Bluetooth Socket [X]\n");
         close(socketPi);
         debugMsg("\n[X] Exit Programm [X]\n");
@@ -389,14 +403,37 @@ void timer_handler(int32_t sigNr)
         filterChar(data, "A:", "ÿ","[X] BME TEMP: ","°C");
         filterChar(data, "B:", "ÿ","[X] BME PRESS: ","hPa");
         filterChar(data, "C:", "ÿ","[X] BME HUM: ","%");
-        filterChar(data, "D:", "ÿ","[X] DS18B20 TEMP: ","°C");
-        if(filterChar(data, "E:", "ÿ","[X] WATERLEVEL: ","cm") >= 4.0f)
+
+        if(filterChar(data, "D:", "ÿ","[X] DS18B20 TEMP: ","°C") >= 25.0f)
         {
-            pwmWrite(PWM_PIN1, 0);
+            //pwmWrite(PWM_PIN1, 0);
+            //pwmWrite(PWM_PIN0, 0);
+
+
         }
         else
         {
-            pwmWrite(PWM_PIN1, 1023);
+            //pwmWrite(PWM_PIN1,600);
+            //pwmWrite(PWM_PIN0, 600);
+
+        }
+        
+
+        if(filterChar(data, "E:", "ÿ","[X] WATERLEVEL: ","cm") >= 2.5f)
+        {
+            digitalWrite(L293D_IN1, HIGH);
+            digitalWrite(L293D_IN3, LOW);
+            pwmWrite(PWM_PIN0, 600);
+            pwmWrite(PWM_PIN1, 600);
+
+        }
+        else
+        {
+            digitalWrite(L293D_IN1, LOW);
+            digitalWrite(L293D_IN3, HIGH);
+            pwmWrite(PWM_PIN0, 600);
+            pwmWrite(PWM_PIN1, 600);
+
         }
         
         memset(data, 0, sizeof(data));
